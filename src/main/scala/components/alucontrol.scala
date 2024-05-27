@@ -34,8 +34,7 @@ class ALUControl extends Module {
 
   io.operation := "b11111".U // Invalid
 
-  // Your code goes here
-  when (io.aluop === 1.U) { // 64-bit R-type
+   when (io.aluop === 1.U) { // 64-bit R-type
     io.operation := MuxCase(
       "b11111".U, // default: Invalid
       Array(
@@ -77,36 +76,49 @@ class ALUControl extends Module {
       )
     )
   }
-  .elsewhen (io.aluop === 2.U) { // 64-bit I-type 
+  //32 bit I-type
+  .elsewhen (io.aluop===4.U){
     io.operation := MuxCase(
-      "b11111".U,
-      Array(
-        (io.funct3 === "b001".U) -> "b10010".U, // slli
-        ((io.funct7 === "b0000000".U) & (io.funct3 === "b101".U)) -> "b10100".U, // srli
-        ((io.funct7 === "b0100000".U) & (io.funct3 === "b101".U)) -> "b10000".U, // srai
-        (io.funct3 === "b000".U) -> "b00001".U, // addi
-        (io.funct3 === "b010".U) -> "b10110".U, // slti
-        (io.funct3 === "b011".U) -> "b10111".U, // sltui
-        (io.funct3 === "b100".U) -> "b01111".U, // xori
-        (io.funct3 === "b110".U) -> "b01110".U, // ori
-        (io.funct3 === "b111".U) -> "b01101".U,  // andi
-      )
-    )
-  }
-  .elsewhen (io.aluop === 4.U) { // 32-bit I-type
-    io.operation := MuxCase(
-      "b11111".U,
-      Array(
-        (io.funct3 === "b001".U) -> "b10011".U, // slliw
-        ((io.funct7 === "b0000000".U) & (io.funct3 === "b101".U)) -> "b10101".U, // srliw
-        ((io.funct7 === "b0100000".U) & (io.funct3 === "b101".U)) -> "b10001".U, // sraiw
-        (io.funct3 === "b000".U) -> "b00000".U, // addiw
-      )
-    )
-  }
-  .elsewhen(io.aluop === 5.U) {
-    io.operation := "b00001".U
-  }
+       "b11111".U, // default: Invalid
+       Array(
+        ((io.funct3 === "b000".U)) -> "b00000".U, //addiw
+        ((io.funct3 === "b101".U) & (io.funct7 === "b0100000".U)) -> "b10001".U, //SRAIW
+        ((io.funct3 === "b101".U) & (io.funct7 === "b0000000".U)) -> "b10101".U, //SRLIW
+        ((io.funct3 === "b001".U) & (io.funct7 === "b0000000".U)) -> "b10011".U //SLLIW
 
+        )
+      )
+             
+   }
+    //64 bit I-type
+  .elsewhen (io.aluop===2.U){
+    io.operation := MuxCase(
+       "b11111".U, // default: Invalid
+       Array(
+        ((io.funct3 === "b000".U)) -> "b00001".U, // ADDI
+        ((io.funct3 === "b111".U)) -> "b01101".U, // ANDI
+        ((io.funct3 === "b110".U)) -> "b01110".U, // ori
+        ((io.funct3 === "b100".U)) -> "b01111".U, // xorI
+        ((io.funct3 === "b010".U)) -> "b10110".U, // slti
+        ((io.funct3 === "b011".U)) -> "b10111".U, // sltiu
+
+        ((io.funct3 === "b101".U) & (io.funct7(6,1) === "b010000".U)) -> "b10000".U, //srai
+        ((io.funct3 === "b101".U) & (io.funct7(6,1) === "b000000".U)) -> "b10100".U, //srli
+        ((io.funct3 === "b001".U) & (io.funct7(6,1) === "b000000".U)) -> "b10010".U //slli
+
+       )
+    )
+  }
+  .elsewhen(io.aluop === 5.U)
+  { 
+   io.operation := "b00001".U //store
+   //MuxCase(
+  //      "b11111".U, // default: Invalid
+  //      Array(
+  //       ((io.funct3 === "b011".U) ) -> "b00001".U //load
+  //       //((io.funct3 === "b011".U) & (io.funct7 === "b0100011".U)) -> "b00001".U //store
+  //      )
+  //  )
+        
+   }
 }
-
